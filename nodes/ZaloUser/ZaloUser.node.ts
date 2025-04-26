@@ -100,7 +100,7 @@ export class ZaloUser implements INodeType {
 						const userId = this.getNodeParameter('userId', i) as string;
 						const message = this.getNodeParameter('message', i) as string;
 
-						const response = await api.sendFriendRequest(userId, message);
+						const response = await api.sendFriendRequest(message, userId);
 
 						returnData.push({
 							json: {

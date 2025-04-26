@@ -4,12 +4,15 @@ import {
 	INodeType,
 	INodeTypeDescription,
 	NodeOperationError,
+	INodePropertyOptions,
+	ILoadOptionsFunctions,
 } from 'n8n-workflow';
 import { API, ThreadType, Zalo } from 'zca-js';
+import { saveImage, removeImage } from '../utils/helper';
+
 let api: API | undefined;
 
 export class ZaloSendMessage implements INodeType {
-
 	description: INodeTypeDescription = {
 		displayName: 'Zalo Send Message',
 		name: 'zaloSendMessage',
@@ -42,7 +45,17 @@ export class ZaloSendMessage implements INodeType {
 			{
 				displayName: 'Type',
 				name: 'type',
-				type: 'number',
+				type: 'options',
+				options: [
+					{
+						name: 'User',
+						value: 0,
+					},
+					{
+						name: 'Group',
+						value: 1,
+					},
+				],
 				default: 0,
 				description: 'Loại của tin nhắn (user hoặc group)',
 			},
@@ -54,64 +67,276 @@ export class ZaloSendMessage implements INodeType {
 				required: true,
 				description: 'Nội dung tin nhắn cần gửi',
 			},
+			{
+				displayName: 'Urgency',
+				name: 'urgency',
+				type: 'options',
+				options: [
+					{
+						name: 'Default',
+						value: 0,
+					},
+					{
+						name: 'Important',
+						value: 1,
+					},
+					{
+						name: 'Urgent',
+						value: 2,
+					},
+				],
+				default: 0,
+				description: 'Mức độ khẩn cấp của tin nhắn',
+			},
+			{
+				displayName: 'Quote Message',
+				name: 'quote',
+				type: 'collection',
+				placeholder: 'Add Quote',
+				default: {},
+				options: [
+					{
+						displayName: 'Message ID',
+						name: 'msgId',
+						type: 'string',
+						default: '',
+						description: 'ID của tin nhắn cần trích dẫn',
+					},
+					{
+						displayName: 'Sender ID',
+						name: 'senderId',
+						type: 'string',
+						default: '',
+						description: 'ID của người gửi tin nhắn trích dẫn',
+					},
+					{
+						displayName: 'Content',
+						name: 'content',
+						type: 'string',
+						default: '',
+						description: 'Nội dung tin nhắn trích dẫn',
+					},
+				],
+			},
+			{
+				displayName: 'Mentions',
+				name: 'mentions',
+				type: 'collection',
+				placeholder: 'Add Mention',
+				default: {},
+				options: [
+					{
+						displayName: 'User ID',
+						name: 'uid',
+						type: 'string',
+						default: '',
+						description: 'ID của người dùng được mention',
+					},
+					{
+						displayName: 'Position',
+						name: 'pos',
+						type: 'number',
+						default: 0,
+						description: 'Vị trí mention trong tin nhắn',
+					},
+					{
+						displayName: 'Length',
+						name: 'len',
+						type: 'number',
+						default: 0,
+						description: 'Độ dài của mention',
+					},
+				],
+			},
+			{
+				displayName: 'Attachments',
+				name: 'attachments',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add Attachment',
+				default: {},
+				options: [
+					{
+						name: 'attachment',
+						displayName: 'Attachment',
+						values: [
+							{
+								displayName: 'Type',
+								name: 'type',
+								type: 'options',
+								options: [
+									{
+										name: 'Image URL',
+										value: 'url',
+									}
+								],
+								default: 'url',
+								description: 'Loại file đính kèm',
+							},
+							{
+								displayName: 'Image URL',
+								name: 'imageUrl',
+								type: 'string',
+								default: '',
+								displayOptions: {
+									show: {
+										'type': ['url'],
+									},
+								},
+								description: 'URL công khai của ảnh',
+							}
+						],
+					},
+				],
+				description: 'Một hoặc nhiều ảnh đính kèm để gửi',
+			},
 		],
+	};
+
+	methods = {
+		loadOptions: {
+			async getBinaryProperties(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				const returnData: INodePropertyOptions[] = [];
+				const binaryProperties = this.getCurrentNodeParameter('binaryProperties') as string[];
+				
+				if (binaryProperties) {
+					for (const property of binaryProperties) {
+						returnData.push({
+							name: property,
+							value: property,
+						});
+					}
+				}
+				
+				return returnData;
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const returnData: INodeExecutionData[] = [];
-        const inputs = this.getInputData();
-		const zaloCred = await this.getCredentials("zaloApi");
+		const items = this.getInputData();
+		const zaloCred = await this.getCredentials('zaloApi');
 
-        const cookieFromCred = JSON.parse(zaloCred.cookie as string);
-        const imeiFromCred = zaloCred.imei as string;
-        const userAgentFromCred = zaloCred.userAgent as string;
+		// Parse credentials
+		const cookieFromCred = JSON.parse(zaloCred.cookie as string);
+		const imeiFromCred = zaloCred.imei as string;
+		const userAgentFromCred = zaloCred.userAgent as string;
 
-        const cookie = cookieFromCred ?? inputs.find((x) => x.json.cookie)?.json.cookie as any;
-        const imei = imeiFromCred ?? inputs.find((x) => x.json.imei)?.json.imei as string;
-        const userAgent = userAgentFromCred ?? inputs.find((x) => x.json.userAgent)?.json.userAgent as string;
+		// Initialize Zalo API
+		try {
+			const zalo = new Zalo();
+			api = await zalo.login({ 
+				cookie: cookieFromCred,
+				imei: imeiFromCred, 
+				userAgent: userAgentFromCred 
+			});
+			
+			if (!api) {
+				throw new NodeOperationError(this.getNode(), 'Failed to initialize Zalo API. Check your credentials.');
+			}
+		} catch (error) {
+			throw new NodeOperationError(this.getNode(), `Zalo login error: ${(error as Error).message}`);
+		}
 
-        const zalo = new Zalo();
-        const _api =  await zalo.login({ cookie, imei, userAgent });
-        api = _api;
-        if (!api) {
-            throw new NodeOperationError(this.getNode(), 'No API instance found. Please make sure to provide valid credentials.')
-        }
-        this.logger.info(`API ${JSON.stringify(api)}`);
-        console.log('API', api);
+		for (let i = 0; i < items.length; i++) {
+			try {
+				// Get parameters
+				const threadId = this.getNodeParameter('threadId', i) as string;
+				const typeNumber = this.getNodeParameter('type', i) as number;
+				const type = typeNumber === 0 ? ThreadType.User : ThreadType.Group;
+				const message = this.getNodeParameter('message', i) as string;
+				const urgency = this.getNodeParameter('urgency', i, 0) as number;
+				const quote = this.getNodeParameter('quote', i, {}) as any;
+				const mentions = this.getNodeParameter('mentions', i, {}) as any;
+				const attachments = this.getNodeParameter('attachments', i, {}) as any;
 
-        const threadId = this.getNodeParameter('threadId', 0) as string;
-		const typeNumber = this.getNodeParameter('type', 0) as number;
-        const type = typeNumber === 0 ? ThreadType.User : ThreadType.Group;
-        const message = this.getNodeParameter('message', 0) as string;
-        const meta = {threadId, type, message};
-        // Gửi tin nhắn một lần
-        try {
-            this.logger.info(`Parameters before sending message: ${JSON.stringify(meta)}`);
+				// Create message content
+				const messageContent: any = {
+					msg: message,
+				};
 
-            
-            const response = await api.sendMessage({
-                msg: message,
-                
-            },
-            
-            threadId,
-            type);
+				// Add urgency if specified
+				if (urgency !== 0) {
+					messageContent.urgency = urgency;
+				}
 
-            this.logger.info('Message sent successfully', {message, threadId, type});
-            returnData.push({
-                json: response,
-            });
-        } catch (error) {
-            this.logger.error('Error in sendMessage:', { error });
-            if ((error as any).response) {
-                this.logger.error('Error response:', { response: (error as any).response });
-            }
-            if ((error as any).stack) {
-                this.logger.error('Error stack:', { stack: (error as any).stack });
-            }
-            throw new NodeOperationError(this.getNode(), error as Error, { itemIndex: 0 });
-        }
-    
-        return [returnData];
+				// Add quote if specified
+				if (quote && Object.keys(quote).length > 0) {
+					messageContent.quote = {
+						msgId: quote.msgId,
+						senderId: quote.senderId,
+						content: quote.content,
+					};
+				}
+
+				// Add mentions if specified
+				if (mentions && Object.keys(mentions).length > 0) {
+					messageContent.mentions = [{
+						pos: mentions.pos || 0,
+						uid: mentions.uid,
+						len: mentions.len || 0,
+					}];
+				}
+
+				// Add attachments if specified
+				if (attachments && attachments.attachment && attachments.attachment.length > 0) {
+					messageContent.attachments = [];
+					for (const attachment of attachments.attachment) {
+						let fileData;
+						if (attachment.type === 'url') {
+							 fileData = await saveImage(attachment.imageUrl);
+						}
+						
+
+						messageContent.attachments.push(fileData);
+					}
+				}
+
+				// Log the parameters before sending
+				this.logger.info(`Sending message with parameters: ${JSON.stringify(messageContent)}`);
+				// Send the message
+				if (!api) {
+					throw new NodeOperationError(this.getNode(), 'Zalo API not initialized');
+				}
+				
+				const response = await api.sendMessage(messageContent, threadId, type);
+				if (messageContent.attachments && messageContent.attachments.length > 0){
+					for (const attachment of messageContent.attachments) {
+						this.logger.info(`Remove attachment: ${attachment}`);
+
+						removeImage(attachment)
+					}
+				}
+				this.logger.info('Message sent successfully', { threadId, type });
+				returnData.push({
+					json: {
+						success: true,
+						response,
+						threadId,
+						threadType: type,
+						messageContent,
+					},
+				});
+				
+			} catch (error) {
+				this.logger.error('Error sending Zalo message:', error);
+				
+				if (this.continueOnFail()) {
+					returnData.push({
+						json: {
+							success: false,
+							error: (error as Error).message,
+						},
+					});
+				} else {
+					throw new NodeOperationError(this.getNode(), error as Error, { itemIndex: i });
+				}
+			}
+		}
+
+		return [returnData];
 	}
 }

@@ -11,7 +11,7 @@ Community Nodes là các nodes được phát triển bởi cộng đồng n8n. 
 - Zalo User Nodes chỉ khả dụng trên các phiên bản n8n tự host
 - Không có sẵn trên n8n cloud
 - Yêu cầu bạn phải tự host n8n
-- Phiên bản mới nhất hiện tại: 0.5.2
+- Phiên bản mới nhất hiện tại: 0.5.4
 
 ## Cài đặt qua GUI
 

@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-zalo-tools",
-	"version": "0.5.2",
+	"version": "0.5.4",
 	"description": "Các node hỗ trợ Zalo cho n8n",
 	"keywords": [
 		"n8n-community-node-package",
@@ -10,7 +10,7 @@
 		"n8n"
 	],
 	"license": "MIT",
-	"homepage": "https://n8n.io/",
+	"homepage": "https://dinhtrung1308.github.io/zalo-node/#/",
 	"author": {
 		"name": "dinhtrung",
 		"email": "trungduong13082000@gmail.com"
