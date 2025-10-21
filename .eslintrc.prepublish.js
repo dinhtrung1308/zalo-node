@@ -21,7 +21,8 @@ module.exports = {
 				'n8n-nodes-base/node-param-options-type-unsorted-items': 'off',
 				'n8n-nodes-base/node-param-option-description-identical-to-name': 'off',
 				'n8n-nodes-base/node-param-options-type-unsorted-items': 'off',
-				'n8n-nodes-base/node-param-required-false': 'off'
+				'n8n-nodes-base/node-param-required-false': 'off',
+				'n8n-nodes-base/node-param-description-boolean-without-whether': 'off'
 				},
 			},
 		],

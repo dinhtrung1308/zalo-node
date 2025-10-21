@@ -229,6 +229,28 @@ export class ZaloGroup implements INodeType {
 							},
 						});
 					}
+
+					// Tạo ghi chú
+					else if (operation === 'createNote') {
+						const groupId = this.getNodeParameter('groupId', i) as string;
+						const content = this.getNodeParameter('content', i) as string;
+						const pinAct = this.getNodeParameter('pinAct', i) as boolean;
+						const options = {
+							title: content,
+							pinAct: pinAct,
+						};
+						const response = await api.createNote(options, groupId);
+
+						returnData.push({
+							json: {
+								status: "Thành công",
+								response: response,
+							},
+							pairedItem: {
+								item: i,
+							},
+						});
+					}
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {

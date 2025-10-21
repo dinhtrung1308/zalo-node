@@ -4,24 +4,23 @@ import {
 	IWebhookFunctions,
 	IWebhookResponseData,
 	NodeOperationError,
-	IHookFunctions,
-	IDataObject,
+	IHookFunctions
 } from 'n8n-workflow';
-import { API, Zalo, ThreadType } from 'zca-js';
+import { API, Zalo, FriendEventType, FriendEvent } from 'zca-js';
 
 let api: API | undefined;
 let reconnectTimer: NodeJS.Timeout | undefined;
 
-export class ZaloMessageTrigger implements INodeType {
+export class ZaloFriendTrigger implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Zalo Message Trigger',
-		name: 'zaloMessageTrigger',
+		displayName: 'Zalo Friend Trigger',
+		name: 'zaloFriendTrigger',
 		icon: 'file:../shared/zalo.svg',
 		group: ['trigger'],
 		version: 1,
-		description: 'Sự kiện lắng nghe tin nhắn trên Zalo',
+		description: 'Lắng nghe sự kiện kết bạn trên Zalo',
 		defaults: {
-			name: 'Zalo Message Trigger',
+			name: 'Zalo Friend Trigger',
 		},
 		// @ts-ignore
 		inputs: [],
@@ -49,27 +48,14 @@ export class ZaloMessageTrigger implements INodeType {
 				type: 'multiOptions',
 				options: [
 					{
-						name: 'User Messages',
-						value: ThreadType.User,
-						description: 'Lắng nghe tin nhắn từ người dùng',
-					},
-					{
-						name: 'Group Messages',
-						value: ThreadType.Group,
-						description: 'Lắng nghe tin nhắn từ nhóm',
-					},
+						name: 'Friend Requests',
+						value: FriendEventType.REQUEST,
+						description: 'Nghe sự kiện yêu cầu kết bạn',
+					}
 				],
-				default: [ThreadType.User, ThreadType.Group],
+				default: [FriendEventType.REQUEST],
 				required: true,
-				description: 'Types of messages to listen for',
-			},
-			{
-				displayName: 'Self Listen',
-				name: 'selfListen',
-				type: 'boolean',
-				default: false,
-				required: true,
-				description: 'Cho phép lắng nghe tin nhắn của chính mình tự gửi',
+				description: 'Friend events to listen for',
 			},
 		],
 	};
@@ -93,8 +79,7 @@ export class ZaloMessageTrigger implements INodeType {
 					const imeiFromCred = credentials.imei as string;
 					const userAgentFromCred = credentials.userAgent as string;
 
-					const selfListen = this.getNodeParameter('selfListen', 0) as boolean;
-					const zalo = new Zalo({ selfListen });
+					const zalo = new Zalo();
 					api = await zalo.login({ cookie: cookieFromCred, imei: imeiFromCred, userAgent: userAgentFromCred });
 
 					if (!api) {
@@ -103,27 +88,25 @@ export class ZaloMessageTrigger implements INodeType {
 							'No API instance found. Please make sure to provide valid credentials.',
 						);
 					}
-                    const webhookUrl = this.getNodeWebhookUrl('default') as string;
-                    console.log(webhookUrl);
+					const webhookUrl = this.getNodeWebhookUrl('default') as string;
+					console.log(webhookUrl);
+
+
 					// Add message event listener
-					api.listener.on('message', async (message) => {
-						const webhookData = this.getWorkflowStaticData('node');
-						// const eventTypes = webhookData.eventTypes as ThreadType[];
-                        this.helpers.httpRequest({
-                            method: 'POST',
-                            url: webhookUrl,
-                            body: {
-                                message: message,
-                            },
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                        });
-						// if (eventTypes.includes(message.type)) {
-                        //     console.log(message);
-							// Store message in static data to be processed by webhook method
-						webhookData.lastMessage = message;
-						// }
+					api.listener.on('friend_event', async (event: FriendEvent) => {
+						const nodeEventTypes = this.getNodeParameter('eventTypes', 0) as FriendEventType[];
+						if(nodeEventTypes.includes(event.type)) {
+							this.helpers.httpRequest({
+									method: 'POST',
+									url: webhookUrl,
+									body: {
+										friendEvent: event.data,
+									},
+									headers: {
+											'Content-Type': 'application/json',
+									},
+							});
+						}
 					});
 
 					// Start listening
@@ -131,7 +114,7 @@ export class ZaloMessageTrigger implements INodeType {
 
 					const webhookData = this.getWorkflowStaticData('node');
 					webhookData.isConnected = true;
-					webhookData.eventTypes = this.getNodeParameter('eventTypes', 0) as ThreadType[];
+					webhookData.eventTypes = this.getNodeParameter('eventTypes', 0) as FriendEventType[];
 
 					return true;
 				} catch (error) {
@@ -154,24 +137,15 @@ export class ZaloMessageTrigger implements INodeType {
 
 				delete webhookData.isConnected;
 				delete webhookData.eventTypes;
-				delete webhookData.lastMessage;
 				return true;
 			},
 		},
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-        const req = this.getRequestObject();
-        const body = req.body;
-        console.log(body);
-		const webhookData = this.getWorkflowStaticData('node');
-		const message = webhookData.lastMessage as IDataObject;
-        console.log(message);
-
-
-		// Clear the message after processing
-		delete webhookData.lastMessage;
-
+		const req = this.getRequestObject();
+		const body = req.body;
+		console.log(body);
 
 		return {
 			workflowData: [this.helpers.returnJsonArray(req.body)],

@@ -23,7 +23,7 @@ Tiếp theo, bạn cần tạo credentials cho n8n:
 
 ![Tạo Credentials](../assets/create-credential.png)
 
-3. Trong modal tìm kiếm, sử dụng thanh tìm kiếm để tìm "n8n Account Credential"
+3. Trong modal tìm kiếm, sử dụng thanh tìm kiếm để tìm "n8n Zalo Account Credential"
 
 ![Tìm kiếm Credentials](../assets/search-credential.png)
 

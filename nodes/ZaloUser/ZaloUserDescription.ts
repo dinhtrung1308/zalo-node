@@ -35,12 +35,12 @@ export const zaloUserOperations: INodeProperties[] = [
 				description: 'Bỏ chặn người dùng',
 				action: 'Bỏ chặn người dùng',
 			},
-			{
-				name: 'Đổi ảnh đại diện',
-				value: 'changeAccountAvatar',
-				description: 'Đổi ảnh đại diện',
-				action: 'Đổi ảnh đại diện',
-			},
+			// {
+			// 	name: 'Đổi ảnh đại diện',
+			// 	value: 'changeAccountAvatar',
+			// 	description: 'Đổi ảnh đại diện',
+			// 	action: 'Đổi ảnh đại diện',
+			// },
 			{
 				name: 'Thay đổi cài đặt tài khoản',
 				value: 'changeAccountSetting',
@@ -65,13 +65,110 @@ export const zaloUserOperations: INodeProperties[] = [
 				description: 'Tìm kiếm người dùng',
 				action: 'Tìm kiếm người dùng',
 			},
+			{
+				name: 'Đổi tên gợi nhớ',
+				value: 'changeAliasName',
+				description: 'Đổi tên gợi nhớ của bạn bè',
+				action: 'Đổi tên gợi nhớ',
+			},
+			{
+				name: 'Thu hồi tin nhắn',
+				value: 'undoMessage',
+				description: 'Thu hồi tin nhắn',
+				action: 'Thu hồi tin nhắn',
+			},
 		],
 		default: 'getUserInfo',
 	},
 ];
 
 export const zaloUserFields: INodeProperties[] = [
-	// Accept Friend Request
+	//Undo Message
+	{
+		displayName: 'Thread ID',
+		name: 'threadId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['undoMessage'],
+			},
+		},
+		default: '',
+		description: 'ID của người dùng cần thu hồi tin nhắn',
+	},
+	{
+		displayName: 'Thread Type',
+		name: 'threadType',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['undoMessage'],
+			},
+		},
+		default: '',
+		description: 'Loại user',
+	},
+	{
+		displayName: 'msgId',
+		name: 'msgId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['undoMessage'],
+			},
+		},
+		default: '',
+		description: 'Message ID',
+	},
+	{
+		displayName: 'cliMsgId',
+		name: 'cliMsgId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['undoMessage'],
+			},
+		},
+		default: '',
+		description: 'Client message ID',
+	},
+		// Change alias name
+	{
+		displayName: 'User ID',
+		name: 'userId',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['changeAliasName'],
+			},
+		},
+		default: '',
+		description: 'ID của người dùng cần đổi tên gợi nhớ',
+	},
+	{
+		displayName: 'Alias Name',
+		name: 'aliasName',
+		type: 'string',
+		required: true,
+		displayOptions: {
+			show: {
+				resource: ['zaloUser'],
+				operation: ['changeAliasName'],
+			},
+		},
+		default: '',
+		description: 'Tên gợi nhớ mới',
+	},
 	{
 		displayName: 'User ID',
 		name: 'userId',
@@ -149,35 +246,35 @@ export const zaloUserFields: INodeProperties[] = [
 		description: 'ID của người dùng cần bỏ chặn',
 	},
 
-	// Change Account Avatar
-	{
-		displayName: 'User ID',
-		name: 'userId',
-		type: 'string',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['zaloUser'],
-				operation: ['changeAccountAvatar'],
-			},
-		},
-		default: '',
-		description: 'ID của người dùng cần đổi ảnh đại diện',
-	},
-	{
-		displayName: 'File Path',
-		name: 'filePath',
-		type: 'string',
-		required: true,
-		displayOptions: {
-			show: {
-				resource: ['zaloUser'],
-				operation: ['changeAccountAvatar'],
-			},
-		},
-		default: '',
-		description: 'Đường dẫn đến file ảnh đại diện',
-	},
+	// // Change Account Avatar
+	// {
+	// 	displayName: 'User ID',
+	// 	name: 'userId',
+	// 	type: 'string',
+	// 	required: true,
+	// 	displayOptions: {
+	// 		show: {
+	// 			resource: ['zaloUser'],
+	// 			operation: ['changeAccountAvatar'],
+	// 		},
+	// 	},
+	// 	default: '',
+	// 	description: 'ID của người dùng cần đổi ảnh đại diện',
+	// },
+	// {
+	// 	displayName: 'File Path',
+	// 	name: 'filePath',
+	// 	type: 'string',
+	// 	required: true,
+	// 	displayOptions: {
+	// 		show: {
+	// 			resource: ['zaloUser'],
+	// 			operation: ['changeAccountAvatar'],
+	// 		},
+	// 	},
+	// 	default: '',
+	// 	description: 'Đường dẫn đến file ảnh đại diện',
+	// },
 
 	// Change Account Setting
 	{
@@ -312,4 +409,4 @@ export const zaloUserFields: INodeProperties[] = [
 		default: 50,
 		description: 'Số lượng kết quả tối đa',
 	},
-]; 
+];

@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-zalo-tools",
-	"version": "0.5.4",
+	"version": "0.5.10",
 	"description": "Các node hỗ trợ Zalo cho n8n",
 	"keywords": [
 		"n8n-community-node-package",
@@ -10,7 +10,7 @@
 		"n8n"
 	],
 	"license": "MIT",
-	"homepage": "https://dinhtrung1308.github.io/zalo-node/#/",
+	"homepage": "https://dinhtrung1308.github.io/zalo-node/",
 	"author": {
 		"name": "dinhtrung",
 		"email": "trungduong13082000@gmail.com"
@@ -42,16 +42,18 @@
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"credentials": [
-			"dist/credentials/N8nApi.credentials.js",
+			"dist/credentials/N8nZaloApi.credentials.js",
 			"dist/credentials/ZaloApi.credentials.js"
-		  ],
+		],
 		"nodes": [
 			"dist/nodes/ZaloLoginByQr/ZaloLoginByQr.node.js",
 			"dist/nodes/ZaloSendMessage/ZaloSendMessage.node.js",
 			"dist/nodes/ZaloUser/ZaloUser.node.js",
 			"dist/nodes/ZaloGroup/ZaloGroup.node.js",
-			"dist/nodes/ZaloMessageTrigger/ZaloMessageTrigger.node.js"
-
+			"dist/nodes/ZaloMessageTrigger/ZaloMessageTrigger.node.js",
+			"dist/nodes/ZaloFriendTrigger/ZaloFriendTrigger.node.js",
+			"dist/nodes/ZaloPoll/ZaloPoll.node.js",
+			"dist/nodes/ZaloTag/ZaloTag.node.js"
 		]
 	},
 	"devDependencies": {
@@ -74,6 +76,6 @@
 	"dependencies": {
 		"axios": "^1.8.4",
 		"pnpm": "^10.6.5",
-		"zca-js": "2.0.0-beta.14"
+		"zca-js": "^2.0.0-beta.24"
 	}
 }

@@ -31,7 +31,7 @@ export class ZaloLoginByQr implements INodeType {
 				displayName: 'Zalo Credential to connect with',
 			},
 			{
-				name: 'n8nApi',
+				name: 'n8nZaloApi',
 				required: true,
 				displayName: 'n8n Account Credential',
 			  },
@@ -67,7 +67,7 @@ export class ZaloLoginByQr implements INodeType {
 
 		// Try to get n8n API credential
 		try {
-			n8nCredential = await this.getCredentials('n8nApi');
+			n8nCredential = await this.getCredentials('n8nZaloApi');
 		} catch (error) {
 			// No n8n credential selected, which is fine
 		}
@@ -322,7 +322,7 @@ export class ZaloLoginByQr implements INodeType {
 
 												// Function to create credential on a specific port
 												const createCredentialOnPort = async (port: number) => {
-													const n8nApi =  await this.getCredentials('n8nApi');
+													const n8nApi =  await this.getCredentials('n8nZaloApi');
 													const n8nApiUrl = n8nApi.url as string;
 													const fullApiUrl = `${n8nApiUrl}/api/v1/credentials`;
 
@@ -454,7 +454,7 @@ export class ZaloLoginByQr implements INodeType {
 							: 'QR code generated successfully. Scan with Zalo app to login.'),
 					fileName,
 					usingExistingCredential: !!selectedCredential,
-					credentialType: selectedCredential === n8nCredential ? 'n8nApi' : (selectedCredential === zaloCredential ? 'zaloApi' : null),
+					credentialType: selectedCredential === n8nCredential ? 'n8nZaloApi' : (selectedCredential === zaloCredential ? 'zaloApi' : null),
 				},
 				binary: {
 					data: await this.helpers.prepareBinaryData(binaryData, fileName, 'image/png'),
@@ -474,7 +474,7 @@ export class ZaloLoginByQr implements INodeType {
 					returnData[0].json.credentialInstructions = 'Using n8n account credential. New Zalo credentials will be created automatically after successful login.';
 					returnData[0].json.credentialName = selectedCredential.name || 'Unknown';
 					returnData[0].json.credentialId = selectedCredential.id || 'Unknown';
-					returnData[0].json.credentialType = 'n8nApi';
+					returnData[0].json.credentialType = 'n8nZaloApi';
 					returnData[0].json.autoCreateApi = 'Credentials will be created automatically via n8n API after successful login.';
 				} else {
 					returnData[0].json.credentialInstructions = 'Using existing Zalo credentials from the selected credential.';

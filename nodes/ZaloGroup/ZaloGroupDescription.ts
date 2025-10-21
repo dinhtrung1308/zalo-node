@@ -64,8 +64,14 @@ export const zaloGroupOperations: INodeProperties[] = [
 			{
 				name: 'Xóa Thành Viên Khỏi Nhóm',
 				value: 'removeUserFromGroup',
-				description: 'Xóa thành viên khỏi nhóm',
+				description: 'Xóa thành ra viên khỏi nhóm',
 				action: 'Xóa Thành Viên Khỏi Nhóm',
+			},
+			{
+				name: 'Tạo Ghi Chú',
+				value: 'createNote',
+				description: 'Tạo ghi chú trong nhóm',
+				action: 'Tạo Ghi Chú',
 			},
 		],
 		default: 'createGroup',
@@ -332,5 +338,51 @@ export const zaloGroupFields: INodeProperties[] = [
 			},
 		},
 		description: 'ID của người dùng cần xóa khỏi nhóm',
+	},
+
+	/* -------------------------------------------------------------------------- */
+	/*                            zaloGroup:createNote                            */
+	/* -------------------------------------------------------------------------- */
+	{
+		displayName: 'ID Nhóm',
+		name: 'groupId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['zaloGroup'],
+				operation: ['createNote'],
+			},
+		},
+		description: 'ID của nhóm',
+	},
+	{
+		displayName: 'Nội Dung Ghi Chú',
+		name: 'content',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['zaloGroup'],
+				operation: ['createNote'],
+			},
+		},
+		description: 'Nội dung của ghi chú',
+	},
+	{
+		displayName: 'Pin Ghi Chú',
+		name: 'pinAct',
+		type: 'boolean',
+		required: true,
+		default: false,
+		displayOptions: {
+			show: {
+				resource: ['zaloGroup'],
+				operation: ['createNote'],
+			},
+		},
+		description: 'Ghim ghi chú lên đầu nhóm',
 	},
 ]; 

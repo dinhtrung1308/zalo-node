@@ -1,13 +1,16 @@
 import {
-
 	ICredentialType,
 	INodeProperties,
+	Icon,
 } from 'n8n-workflow';
 
 export class ZaloApi implements ICredentialType {
 	name = 'zaloApi';
 	displayName = 'Zalo API';
 	documentationUrl = 'https://developers.zalo.me/docs';
+	
+	icon: Icon = 'file:shared/zalo.svg';
+
 	properties: INodeProperties[] = [
 		{
 			displayName: 'Cookie',
